@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	var bc Blockchain
+
 	genesisBlock := Block{
 		index:         0,
 		unixTimeStamp: time.Now().UTC().UnixNano(),
@@ -16,26 +18,38 @@ func main() {
 		transaction:   nil,
 	}
 
-	blockchain := Blockchain{
-		genesisBlock: genesisBlock,
-		blocks:       []Block{genesisBlock},
-	}
+	bc.newBlockchain(genesisBlock)
 
 	block := newBlock(
 		1,
 		time.Now().UTC().UnixNano(),
 		genesisBlock.hash,
 		1,
-		[]Transaction{},
+		[]Transaction{
+			{
+				inputs: []Output{
+					{
+						index:   0,
+						address: "Bob",
+						value:   100000,
+					},
+				},
+				outputs: []Output{
+					{
+						index:   0,
+						address: "Alice",
+						value:   1,
+					},
+				},
+			},
+		},
 	)
 
 	block.mine()
 
-	fmt.Println(block)
+	//fmt.Println(block)
 
-	fmt.Println(blockchain)
-}
+	bc.addBlock(*block)
 
-func test() string {
-	return "Hello, world."
+	fmt.Println(bc)
 }
