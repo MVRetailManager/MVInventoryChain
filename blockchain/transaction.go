@@ -1,15 +1,15 @@
-package main
+package blockchain
 
 type Transaction struct {
-	inputs  []Output
-	outputs []Output
+	Inputs  []Output
+	Outputs []Output
 }
 
 func (t *Transaction) inputValue() int {
 	var total int
 
-	for _, input := range t.inputs {
-		total += input.value
+	for _, input := range t.Inputs {
+		total += input.Value
 	}
 
 	return total
@@ -18,8 +18,8 @@ func (t *Transaction) inputValue() int {
 func (t *Transaction) outputValue() int {
 	var total int
 
-	for _, output := range t.outputs {
-		total += output.value
+	for _, output := range t.Outputs {
+		total += output.Value
 	}
 
 	return total

@@ -1,88 +1,73 @@
 package main
 
 import (
-	"io"
-	"log"
-	"os"
 	"time"
+
+	blockchainPKG "github.com/MVRetailManager/MVInventoryChain/blockchain"
+	logging "github.com/MVRetailManager/MVInventoryChain/logging"
 )
 
 var (
-	bc            Blockchain
-	infoLogger    *log.Logger
-	errorLogger   *log.Logger
-	warningLogger *log.Logger
-	blocksLogger  *log.Logger
+	bc blockchainPKG.Blockchain
 )
 
 func init() {
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	logging.SetupLogger()
 
-	if err != nil {
-		errorLogger.Fatal(err)
-	}
-
-	multiWriter := io.MultiWriter(os.Stdout, file)
-
-	infoLogger = log.New(multiWriter, "INFO:		", log.LstdFlags|log.Lshortfile|log.LUTC|log.Lmicroseconds)
-	warningLogger = log.New(multiWriter, "WARNING:	", log.LstdFlags|log.Lshortfile|log.LUTC|log.Lmicroseconds)
-	errorLogger = log.New(multiWriter, "ERROR:		", log.LstdFlags|log.Lshortfile|log.LUTC|log.Lmicroseconds)
-	blocksLogger = log.New(multiWriter, "BLOCKS:		", log.LstdFlags|log.Lshortfile|log.LUTC|log.Lmicroseconds)
-
-	infoLogger.Println("Starting MVInventoryChain")
+	logging.InfoLogger.Println("Starting MVInventoryChain...")
 }
 
 func main() {
 	genesisBlock := initGenesis()
-	genesisBlock.mine()
-	bc.newBlockchain(genesisBlock)
+	genesisBlock.Mine()
+	bc.NewBlockchain(genesisBlock)
 
-	block := newBlock(
+	block := blockchainPKG.NewBlock(
 		1,
 		time.Now().UTC().UnixNano(),
-		genesisBlock.hash,
+		genesisBlock.Hash,
 		1,
-		[]Transaction{
+		[]blockchainPKG.Transaction{
 			{
-				inputs: []Output{bc.blocks[0].transaction[0].outputs[1]},
-				outputs: []Output{
+				Inputs: []blockchainPKG.Output{bc.Blocks[0].Transaction[0].Outputs[1]},
+				Outputs: []blockchainPKG.Output{
 					{
-						index:   0,
-						address: "Alice",
-						value:   2,
+						Index:   0,
+						Address: "Alice",
+						Value:   2,
 					},
 				},
 			},
 		},
 	)
 
-	block.mine()
-	if bc.addBlock(*block) != nil {
-		errorLogger.Println("Error adding block")
+	block.Mine()
+	if bc.AddBlock(*block) != nil {
+		logging.ErrorLogger.Println("Error adding block")
 	}
 }
 
-func initGenesis() Block {
-	return Block{
-		index:         0,
-		unixTimeStamp: time.Now().UTC().UnixNano(),
-		hash:          make([]byte, 32),
-		previousHash:  nil,
-		nonce:         0,
-		difficulty:    0,
-		transaction: []Transaction{
+func initGenesis() blockchainPKG.Block {
+	return blockchainPKG.Block{
+		Index:         0,
+		UnixTimeStamp: time.Now().UTC().UnixNano(),
+		Hash:          make([]byte, 32),
+		PreviousHash:  nil,
+		Nonce:         0,
+		Difficulty:    0,
+		Transaction: []blockchainPKG.Transaction{
 			{
-				inputs: make([]Output, 0),
-				outputs: []Output{
+				Inputs: make([]blockchainPKG.Output, 0),
+				Outputs: []blockchainPKG.Output{
 					{
-						index:   0,
-						address: "Alice",
-						value:   30,
+						Index:   0,
+						Address: "Alice",
+						Value:   30,
 					},
 					{
-						index:   1,
-						address: "Bob",
-						value:   7,
+						Index:   1,
+						Address: "Bob",
+						Value:   7,
 					},
 				},
 			},
