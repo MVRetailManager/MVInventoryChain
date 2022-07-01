@@ -305,7 +305,9 @@ func TestNewBlockInvalidPreviousHash(t *testing.T) {
 
 	block.mine()
 
-	bc.addBlock(*block)
+	if bc.addBlock(*block) != nil {
+		t.Errorf("Unexpected error")
+	}
 
 	block2 := newBlock(
 		2,
@@ -375,7 +377,9 @@ func TestValidPreviousHash(t *testing.T) {
 
 	block.mine()
 
-	bc.addBlock(*block)
+	if bc.addBlock(*block) != nil {
+		t.Errorf("Unexpected error")
+	}
 
 	block2 := newBlock(
 		2,
