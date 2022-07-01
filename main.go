@@ -7,10 +7,6 @@ import (
 	logging "github.com/MVRetailManager/MVInventoryChain/logging"
 )
 
-var (
-	bc blockchainPKG.Blockchain
-)
-
 func init() {
 	logging.SetupLogger()
 
@@ -18,7 +14,7 @@ func init() {
 }
 
 func main() {
-	genesisBlock := initGenesis()
+	/*genesisBlock := initGenesis()
 	genesisBlock.Mine()
 	bc.NewBlockchain(genesisBlock)
 
@@ -29,7 +25,13 @@ func main() {
 		1,
 		[]blockchainPKG.Transaction{
 			{
-				Inputs: []blockchainPKG.Output{bc.Blocks[0].Transaction[0].Outputs[1]},
+				Inputs: []blockchainPKG.Output{
+					{
+						Index:   0,
+						Address: "Larry",
+						Value:   200,
+					},
+				},
 				Outputs: []blockchainPKG.Output{
 					{
 						Index:   0,
@@ -44,7 +46,7 @@ func main() {
 	block.Mine()
 	if bc.AddBlock(*block) != nil {
 		logging.ErrorLogger.Println("Error adding block")
-	}
+	}*/
 }
 
 func initGenesis() blockchainPKG.Block {

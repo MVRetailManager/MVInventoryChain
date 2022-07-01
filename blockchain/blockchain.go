@@ -1,37 +1,97 @@
 package blockchain
 
 import (
-	"bytes"
-	"time"
+	"github.com/dgraph-io/badger"
 
-	bcErrors "github.com/MVRetailManager/MVInventoryChain/customErrors"
 	logging "github.com/MVRetailManager/MVInventoryChain/logging"
 )
 
+const (
+	dbPath = "./tmp/blockchain"
+)
+
 type Blockchain struct {
-	GenesisBlock Block
-	Blocks       []Block
+	LastHash []byte
+	Database *badger.DB
 }
 
 func (bc *Blockchain) NewBlockchain(genesisBlock Block) {
-	bc.GenesisBlock = genesisBlock
-	bc.Blocks = []Block{genesisBlock}
+	opts := badger.Options{}
+	opts = badger.DefaultOptions(dbPath)
+	opts.Dir = dbPath
+	opts.ValueDir = dbPath
 
-	logging.InfoLogger.Printf("New blockchain created with genesis block: %s", bc.GenesisBlock.Hash)
+	db, err := badger.Open(opts)
+	HandleError(err)
+
+	err = db.Update(func(txn *badger.Txn) error {
+		if _, err := txn.Get([]byte("lh")); err == badger.ErrKeyNotFound {
+			err := txn.Set(genesisBlock.Hash, genesisBlock.Serialize())
+			HandleError(err)
+			err = txn.Set([]byte("lh"), genesisBlock.Hash)
+
+			if err != nil {
+				logging.ErrorLogger.Printf(err.Error())
+				return err
+			}
+
+			bc.LastHash = genesisBlock.Hash
+
+			return err
+		} else {
+			item, err := txn.Get([]byte("lh"))
+			HandleError(err)
+			bc.LastHash, err = item.ValueCopy(bc.LastHash)
+			return err
+		}
+	})
+
+	HandleError(err)
+
+	bc.Database = db
+
+	logging.InfoLogger.Printf("New blockchain created with genesis block: %s", genesisBlock.Hash)
 }
 
 func (bc *Blockchain) AddBlock(block Block) error {
-	if err := bc.isValidBlock(block); err != nil {
+	/*if err := bc.isValidBlock(block); err != nil {
 		logging.WarningLogger.Printf(err.Error())
 		return err
-	}
+	}*/
 
-	bc.Blocks = append(bc.Blocks, block)
+	err := bc.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte("lh"))
+		HandleError(err)
+		bc.LastHash, err = item.ValueCopy(bc.LastHash)
+
+		HandleError(err)
+		return err
+	})
+
+	HandleError(err)
+
+	err = bc.Database.Update(func(txn *badger.Txn) error {
+		err = txn.Set(block.Hash, block.Serialize())
+		HandleError(err)
+
+		err = txn.Set([]byte("lh"), block.Hash)
+
+		if err != nil {
+			logging.ErrorLogger.Printf(err.Error())
+			return err
+		}
+
+		bc.LastHash = block.Hash
+
+		return err
+	})
+
+	HandleError(err)
 
 	return nil
 }
 
-func (bc *Blockchain) isValidBlock(block Block) error {
+/*func (bc *Blockchain) isValidBlock(block Block) error {
 	if bc.isInvalidIndex(block) {
 		return bcErrors.MismatchedIndex{ExpectedIndex: len(bc.Blocks), ActualIndex: block.Index}.DoError()
 	}
@@ -96,4 +156,10 @@ func (bc *Blockchain) isInputValueLessZero(transaction Transaction) error {
 	}
 
 	return nil
+}*/
+
+func HandleError(err error) {
+	if err != nil {
+		logging.ErrorLogger.Printf(err.Error())
+	}
 }

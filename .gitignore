@@ -1,6 +1,9 @@
 # Logs
 logs.txt
 
+# Temporary files
+tmp/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

@@ -1,7 +1,9 @@
 package blockchain
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -62,4 +64,28 @@ func first(n []byte, _ error) []byte {
 
 func transactionToString(transaction []Transaction) string {
 	return string(first(json.Marshal(transaction)))
+}
+
+func (bc *Block) Serialize() []byte {
+	var res bytes.Buffer
+
+	encoder := gob.NewEncoder(&res)
+
+	err := encoder.Encode(bc)
+
+	HandleError(err)
+
+	return res.Bytes()
+}
+
+func Deserialize(data []byte) *Block {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+
+	err := decoder.Decode(&block)
+
+	HandleError(err)
+
+	return &block
 }
