@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"time"
 )
 
@@ -14,11 +13,13 @@ type Blockchain struct {
 func (bc *Blockchain) newBlockchain(genesisBlock Block) {
 	bc.genesisBlock = genesisBlock
 	bc.blocks = []Block{genesisBlock}
+
+	infoLogger.Printf("New blockchain created with genesis block: %s", bc.genesisBlock.hash)
 }
 
 func (bc *Blockchain) addBlock(block Block) error {
 	if err := bc.isValidBlock(block); err != nil {
-		fmt.Printf(err.Error())
+		warningLogger.Printf(err.Error())
 		return err
 	}
 
@@ -78,7 +79,7 @@ func (bc *Blockchain) isInvalidGenesisBlock(block Block) bool {
 
 func (bc *Blockchain) isInsufficientInputValue(transaction Transaction) error {
 	if transaction.inputValue() < transaction.outputValue() {
-		return InsufficientInputValue{expectedValue: transaction.outputValue(), actualValue: transaction.inputValue()}.doError()
+		return InsufficientInputValue{expectedValue: transaction.inputValue(), actualValue: transaction.outputValue()}.doError()
 	}
 
 	return nil

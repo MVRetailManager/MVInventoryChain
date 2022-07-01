@@ -28,6 +28,8 @@ func newBlock(index int, unixTimeStamp int64, previousHash []byte, difficulty in
 		transaction:   transaction,
 	}
 
+	blocksLogger.Printf("Block Initialised: %v\n", b)
+
 	b.mine()
 
 	return b
@@ -38,6 +40,8 @@ func (b *Block) mine() {
 		b.nonce++
 		b.hash = b.calculateHash()
 	}
+
+	blocksLogger.Printf("Block Mined: %v\n", b)
 }
 
 func (b *Block) calculateHash() []byte {

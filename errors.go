@@ -125,7 +125,7 @@ type InsufficientInputValue struct {
 }
 
 func (ii *InsufficientInputValue) Error() string {
-	return fmt.Sprintf("InsufficientInputValueError: Expected: > %d, Got: %d", ii.expectedValue, ii.actualValue)
+	return fmt.Sprintf("InsufficientInputValueError: Expected: <= %d, Got: %d", ii.expectedValue, ii.actualValue)
 }
 
 func (ii InsufficientInputValue) doError() error {
