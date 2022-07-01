@@ -15,6 +15,11 @@ type Blockchain struct {
 	Database *badger.DB
 }
 
+type BlockchainIterator struct {
+	CurrentHash []byte
+	Database    *badger.DB
+}
+
 func (bc *Blockchain) NewBlockchain(genesisBlock Block) {
 	opts := badger.Options{}
 	opts = badger.DefaultOptions(dbPath)
@@ -41,7 +46,7 @@ func (bc *Blockchain) NewBlockchain(genesisBlock Block) {
 		} else {
 			item, err := txn.Get([]byte("lh"))
 			HandleError(err)
-			bc.LastHash, err = item.ValueCopy(bc.LastHash)
+			bc.LastHash, err = item.ValueCopy(nil)
 			return err
 		}
 	})
@@ -62,7 +67,7 @@ func (bc *Blockchain) AddBlock(block Block) error {
 	err := bc.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		HandleError(err)
-		bc.LastHash, err = item.ValueCopy(bc.LastHash)
+		bc.LastHash, err = item.ValueCopy(nil)
 
 		HandleError(err)
 		return err
@@ -89,6 +94,31 @@ func (bc *Blockchain) AddBlock(block Block) error {
 	HandleError(err)
 
 	return nil
+}
+
+func (bc *Blockchain) Iterator() *BlockchainIterator {
+	iter := &BlockchainIterator{bc.LastHash, bc.Database}
+
+	return iter
+}
+
+func (iter *BlockchainIterator) Next() *Block {
+	var block *Block
+
+	err := iter.Database.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(iter.CurrentHash)
+		HandleError(err)
+
+		encodedBlock, err := item.ValueCopy(nil)
+		block = Deserialize(encodedBlock)
+
+		return err
+	})
+	HandleError(err)
+
+	iter.CurrentHash = block.PreviousHash
+
+	return block
 }
 
 /*func (bc *Blockchain) isValidBlock(block Block) error {
