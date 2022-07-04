@@ -46,28 +46,49 @@ func (cli *CLI) printChain() {
 		blockchainPKG.HandleError(err)
 
 		fmt.Printf("\nS==========%d==========S\n", block.Index)
-		fmt.Printf("Previous Hash: %x\n", block.PreviousHash)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Printf("Nonce: %d\n", block.Nonce)
-		fmt.Printf("Difficulty: %d\n", block.Difficulty)
-		fmt.Printf("TimeStamp: %d\n", block.UnixTimeStamp)
-		fmt.Printf("Transactions: %d\n", len(block.Transaction))
+		fmt.Printf("Previous Hash: 	%x\n", block.PreviousHash)
+		fmt.Printf("Hash: 			%x\n", block.Hash)
+		fmt.Printf("Nonce: 			%d\n", block.Nonce)
+		fmt.Printf("Difficulty: 		%d\n", block.Difficulty)
+		fmt.Printf("TimeStamp: 		%d\n", block.UnixTimeStamp)
+		fmt.Printf("Transactions:\n")
+
+		for _, tx := range block.Transaction {
+			fmt.Println(tx)
+		}
+
 		fmt.Printf("E==========%d==========E\n", block.Index)
 	}
 }
 
 func (cli *CLI) createBlockchain(address string) {
+	if !wallet.ValidateAddress(address) {
+		fmt.Printf("%s is not a valid address\n", address)
+		logging.ErrorLogger.Printf("%s is not a valid address", address)
+		runtime.Goexit()
+	}
+
 	bc.InitBlockchain(address)
 	bc.Database.Close()
 	fmt.Println("Success!")
 }
 
 func (cli *CLI) getBalance(address string) {
+	if !wallet.ValidateAddress(address) {
+		fmt.Printf("%s is not a valid address\n", address)
+		logging.ErrorLogger.Printf("%s is not a valid address", address)
+		runtime.Goexit()
+	}
+
 	bc.ContinueBlockchain(address)
 	defer bc.Database.Close()
 
 	balance := 0
-	UTXOs := bc.HandleUnspentTxs(address)
+
+	finalHash := wallet.Base58Encode([]byte(address))
+	publicKeyHash := finalHash[1 : len(finalHash)-4]
+
+	UTXOs := bc.HandleUnspentTxs(publicKeyHash)
 
 	for _, out := range UTXOs {
 		balance += out.Value
@@ -77,6 +98,17 @@ func (cli *CLI) getBalance(address string) {
 }
 
 func (cli *CLI) send(from, to string, amount int) {
+	if !wallet.ValidateAddress(to) {
+		fmt.Printf("%s is not a valid address\n", to)
+		logging.ErrorLogger.Printf("%s is not a valid address", to)
+		runtime.Goexit()
+	}
+	if !wallet.ValidateAddress(from) {
+		fmt.Printf("%s is not a valid address\n", from)
+		logging.ErrorLogger.Printf("%s is not a valid address", from)
+		runtime.Goexit()
+	}
+
 	bc.ContinueBlockchain(from)
 	defer bc.Database.Close()
 
