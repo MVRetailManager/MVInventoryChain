@@ -21,17 +21,6 @@ type Transaction struct {
 	Outputs []TxOutput
 }
 
-type TxOutput struct {
-	Value  int
-	PubKey string
-}
-
-type TxInput struct {
-	ID          []byte
-	OutputIndex int
-	Sig         string
-}
-
 func (tx *Transaction) SetID() {
 	var encoded bytes.Buffer
 	var hash [32]byte
@@ -94,12 +83,4 @@ func NewTransaction(from, to string, amount int, bc *Blockchain) *Transaction {
 
 func (tx *Transaction) IsCoinbase() bool {
 	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].OutputIndex == -1
-}
-
-func (in *TxInput) CanUnlock(data string) bool {
-	return in.Sig == data
-}
-
-func (out *TxOutput) CanBeUnlocked(address string) bool {
-	return out.PubKey == address
 }
