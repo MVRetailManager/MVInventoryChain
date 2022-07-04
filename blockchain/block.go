@@ -18,17 +18,17 @@ type Block struct {
 	PreviousHash  []byte
 	Nonce         int
 	Difficulty    int
-	Transaction   []Transaction
+	Transaction   []*Transaction
 }
 
-func NewBlock(index int, unixTimeStamp int64, previousHash []byte, difficulty int, transaction []Transaction) *Block {
+func NewBlock(index int, unixTimeStamp int64, previousHash []byte, transaction []*Transaction) *Block {
 	b := &Block{
 		Index:         index,
 		UnixTimeStamp: unixTimeStamp,
 		Hash:          make([]byte, 32),
 		PreviousHash:  previousHash,
 		Nonce:         0,
-		Difficulty:    difficulty,
+		Difficulty:    1,
 		Transaction:   transaction,
 	}
 
@@ -45,7 +45,7 @@ func (b *Block) Mine() {
 		b.Hash = b.calculateHash()
 	}
 
-	logging.BlocksLogger.Printf("Block Mined: %v\n", b)
+	logging.BlocksLogger.Printf("Block Mined:\n Nonce: %v\nHash: %v\n", b.Nonce, b.Hash)
 }
 
 func (b *Block) calculateHash() []byte {
@@ -62,7 +62,7 @@ func first(n []byte, _ error) []byte {
 	return n
 }
 
-func transactionToString(transaction []Transaction) string {
+func transactionToString(transaction []*Transaction) string {
 	return string(first(json.Marshal(transaction)))
 }
 

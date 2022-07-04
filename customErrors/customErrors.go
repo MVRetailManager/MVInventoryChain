@@ -1,5 +1,6 @@
 package customErrors
 
+/*
 import (
 	"errors"
 	"fmt"
@@ -158,3 +159,4 @@ func (ii InvalidInput) DoError() error {
 		err:           errors.New("InvalidInputError"),
 	}
 }
+*/

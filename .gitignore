@@ -4,6 +4,9 @@ logs.txt
 # Temporary files
 tmp/*
 
+# VSCode
+.vscode/*
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
