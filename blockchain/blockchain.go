@@ -179,8 +179,7 @@ Work:
 }
 
 func InitDBOpts() badger.Options {
-	opts := badger.Options{}
-	opts = badger.DefaultOptions(dbPath)
+	opts := badger.DefaultOptions(dbPath)
 	opts.Dir = dbPath
 	opts.ValueDir = dbPath
 	opts.Logger = nil
